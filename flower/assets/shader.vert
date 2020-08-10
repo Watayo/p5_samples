@@ -10,7 +10,6 @@ uniform float time;
 varying vec2 vTexCoord;
 varying vec3 vNormal;
 varying float vtime;
-varying vec3 c;
 
 void main(){
   vec4 pos=vec4(aPosition,1.);
@@ -18,7 +17,7 @@ void main(){
   vNormal=aNormal;
   vtime=time;
   //pos.xyz += aNormal * 0.1 * sin(time*0.1 + (pos.x + pos.z)*10.0);
-  c = vec3(1.0, 1.0, 1.0);
+  
   gl_Position=uProjectionMatrix*uModelViewMatrix*pos;
   vTexCoord=aTexCoord;
 }

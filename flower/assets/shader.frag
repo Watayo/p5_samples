@@ -10,5 +10,7 @@ float rand(vec2 co){
 }
 
 void main(){
+  vec3 uv = vTexCoord.xy;
+  vec4 c = texture2D()
   gl_FragColor = vec4(c, 1.0);
 }

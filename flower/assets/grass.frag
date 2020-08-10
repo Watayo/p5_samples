@@ -24,7 +24,7 @@ void main(){
   float x = uv.x + rand(uv) * radius * 2.0 - radius;
   float y = uv.y + rand(vec2(uv.y, uv.x)) * radius*2.-radius;
 
-   tex = texture2D(tex0, vec2(x, y));
+  tex = texture2D(tex0, vec2(x, y));
 
   gl_FragColor=tex;
 
