@@ -1,52 +1,61 @@
 let rowShader;
-let grassShdader;
+let grassShader;
+let blurShader;
 
 let pass = Array();
-let passNum = 2;
+let passNum = 4;
 
 let isSymmetry;
 
-function petal(pass, w_size, h_size, k) {
-    // pass.background(10);
-    pass.stroke(255, 255, 255);
-    pass.strokeWeight(1);
-    pass.noFill();
+let strength;
 
+function petal(pass, w_size, h_size, k, color) {
+    // pass.background(10);
+    pass.stroke(color);
+    pass.strokeWeight(1);
+    // pass.fill(255, 100, 255, 100);
+    pass.noFill();
+    
+    let speed = 1;
+    let theta = frameCount * PI / 180 * speed;
     let w = w_size;
     let h = h_size;
-    for (let p = -h/8; p < h/8; p += 14) {
+    for (let p = -h/8; p < h/8; p += 20) {
         pass.bezier(0, 0, 0, w/8, p + 10, k * w/8**2, w/4, p + 10, k * w/4**2, w/2.4,
              0, k * w/2.4 ** 2);
+        
     }
-    // pass.beginShape(POINTS);
-    // pass.vertex();
-    // pass.bezierVertex(80, 0, 80, 75, 30, 75);
-    // pass.endShape();
-
 }
 
 function flower(pass) {
     let divisionNum = 8;
     let divisionCirc = 2 * PI/ divisionNum;
+
+    let alpha = 200;
     for (let i = 0; i < divisionNum; i++) {
         pass.push();
         pass.rotateZ(divisionCirc * i);
-        petal(pass, width, height, 1.5);
+        petal(pass, width, height, 1.5, color(50, 180, 200, alpha));
         pass.pop();
         pass.push();
         pass.rotateZ(PI/6 + divisionCirc * i);
-        petal(pass, width/1.5, height/1.5, 2);
+        petal(pass, width/1.5, height/1.5, 2, color(30, 140, 220, alpha));
         pass.pop();
         pass.push();
         pass.rotateZ(PI/3 + divisionCirc * i);
-        petal(pass, width/2, height/2, 2.5);
+        petal(pass, width/2, height/2, 2.5, color(10, 100, 240, alpha));
+        pass.pop();
+        pass.push();
+        pass.rotateZ(2 * PI/3 + divisionCirc * i);
+        petal(pass, width/2.5, height/2.5, 3.0,  color(5, 60, 255, alpha));
         pass.pop();
     }
 }
 
 function preload() {
     rowShader = loadShader("./assets/shader.vert", "./assets/shader.frag");
-    grassShdader = loadShader("./assets/passth.vert", "./assets/grass.frag");
+    grassShader = loadShader("./assets/passth.vert", "./assets/grass.frag");
+    blurShader = loadShader("./assets/passth.vert", "./assets/blur.frag");
 }
 
 function setup() {
@@ -59,33 +68,52 @@ function setup() {
 
 function draw() {
     let time = frameCount * 0.02;
-    let speed = 2; 
+    let speed = 0.5; 
     let theta =  frameCount * PI / 180.0 * speed;
 
     background(10, 0, 0);
     
-    // pass[0].camera(100 * cos(theta), 0, 700, 0, 0, 0, 0, 1, 0);
+    pass[0].camera(0, -600, 600, 0, 0, 0, 0, 1, 0);
     {
-        pass[0].push();    
-        pass[0].background(100);
-        // pass[0].camera(100 * cos(theta), 0, 700, 0, 0, 0, 0, 1, 0);
+        pass[0].clear();
 
-        pass[0].rotateX(-PI/4);
-        //pass[0].camera(0, 20, 700, 0, 0, 0, 0, 1, 0);
-        pass[0].rotateZ(PI/6);
+        pass[0].background(240);
+        pass[0].blendMode(MULTIPLY);
+
+        pass[0].push();
+
+        pass[0].rotateZ(time * 0.5);
         flower(pass[0]);
         pass[0].pop();
     }
 
     camera(0.0, 0.0, 800, 0.0, 4.0, 0.0, 0.0, 1.0, 0.0);
+
+    strenght = 1.0;
     {
-        pass[1].shader(grassShdader);
+        pass[1].shader(grassShader);
         isSymmetry = false;
-        grassShdader.setUniform("isEnable", isSymmetry);
-        grassShdader.setUniform("tex0", pass[0]);
-        grassShdader.setUniform("time", time);
+        grassShader.setUniform("isEnable", isSymmetry);
+        grassShader.setUniform("tex0", pass[0]);
+        grassShader.setUniform("time", time);
         pass[1].rect(-width / 2.0, -height / 2.0, width, height);
     }
 
-    image(pass[passNum - 1], -width / 2.0, -height / 2.0);
+    {
+        pass[2].shader(blurShader);
+        blurShader.setUniform("horizontal", true);
+        blurShader.setUniform("tex0", pass[2]);
+        blurShader.setUniform("strength", strength);
+        pass[2].rect(-width / 2.0, -height / 2.0, width, height);
+    }
+
+    {
+        pass[3].shader(blurShader);
+        blurShader.setUniform("horizontal", false);
+        blurShader.setUniform("tex0", pass[3]);
+        blurShader.setUniform("strength", strength);
+        pass[3].rect(-width / 2.0, -height / 2.0, width, height);
+    }
+
+    image(pass[passNum - 3], -width / 2.0, -height / 2.0);
 }
